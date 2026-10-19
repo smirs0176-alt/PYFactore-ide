@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyFactor — управление сервером</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; font-family: system-ui, sans-serif; background: #181b21; color: #d4d7de; display: flex; justify-content: center; }
+  main { width: 100%; max-width: 460px; padding: 24px 16px; }
+  h1 { font-size: 20px; margin: 0 0 18px; }
+  .card { background: #21262e; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  input, textarea { width: 100%; box-sizing: border-box; background: #181b21; color: inherit; border: 1px solid #333a46; border-radius: 8px; padding: 10px; font: inherit; }
+  textarea { min-height: 70px; resize: vertical; }
+  button { font: inherit; border: 0; border-radius: 10px; padding: 12px 16px; cursor: pointer; color: #fff; background: #3a4352; }
+  button.big { width: 100%; font-size: 17px; font-weight: 700; padding: 18px; }
+  button.off { background: #d6336c; } button.on { background: #2f9e5b; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; } .chips button { padding: 6px 10px; font-size: 13px; }
+  .badge { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .muted { color: #7f8795; font-size: 13px; } .err { color: #ff5370; margin-top: 8px; min-height: 1em; }
+  ul { list-style: none; padding: 0; margin: 8px 0 0; font-size: 13px; } li { padding: 6px 0; border-bottom: 1px solid #2c323d; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>⚡ PyFactor — управление сервером</h1>
+  <section id="login" class="card">
+    <p class="muted">Введи токен администратора (ADMIN_TOKEN).</p>
+    <input id="token" type="password" placeholder="токен" autocomplete="current-password">
+    <p><button id="enter" class="on">Войти</button></p>
+  </section>
+  <section id="panel" hidden>
+    <div class="card">
+      <div id="badge" class="badge">…</div>
+      <div id="since" class="muted"></div>
+      <p><button id="toggle" class="big">…</button></p>
+      <label class="muted" for="msg">Что увидят пользователи при отключении:</label>
+      <textarea id="msg" maxlength="500"></textarea>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="card"><b>Журнал</b><ul id="log"></ul></div>
+    <p><button id="exit">Выйти</button></p>
+  </section>
+  <div id="err" class="err"></div>
+</main>
+<script src="admin.js"></script>
+</body>
+</html>

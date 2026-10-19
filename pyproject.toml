@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"          # в итоге показываем причины пропусков
+
+[tool.ruff]
+line-length = 170
+target-version = "py39"
+extend-exclude = ["server/dist", "legacy_unused", ".venv", "build", "dist"]
+
+[tool.ruff.lint]
+# Значимые правила: ошибки и баги (E/F), небезопасные вызовы (S), импорты (I). Стилистику (UP031 и т. п.) пока не трогаем.
+select = ["E", "F", "W", "S", "I", "B"]
+ignore = ["S101", "S311", "S110", "S112", "B904", "E701", "E702", "E731", "E741"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B"]

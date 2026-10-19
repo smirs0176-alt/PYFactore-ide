@@ -1,0 +1,59 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y xvfb python3-tk
+      - run: pip install -r requirements-dev.txt
+      - run: python scripts/check.py
+      - run: ruff check .
+      - run: xvfb-run -a python -m pytest -q
+        env: { PYFACTOR_REQUIRE_GUI: "1" }
+      - name: Dependency audit (dev requirements)
+        run: pip install pip-audit && pip-audit -r requirements-dev.txt
+        continue-on-error: true          # сетевой сервис: сбой самого аудита не должен красить сборку; находки смотри в логе
+      - name: Release archive (с проверкой на секреты)
+        run: python scripts/make_release.py --out release
+      - uses: actions/upload-artifact@v4
+        with: { name: PyFactor-source, path: release/*.zip }
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements-dev.txt -r requirements-build.txt
+      - run: python -m pytest -q
+        env: { PYFACTOR_REQUIRE_GUI: "1" }
+      - run: python scripts/build_exe.py
+      - run: if (!(Test-Path dist/PyFactor.exe)) { throw "PyFactor.exe не собран" }
+      - name: EXE metadata (версия в свойствах файла совпадает с pyfactor.__version__)
+        shell: pwsh
+        run: |
+          $want = python -c "import pyfactor; print(pyfactor.__version__)"
+          $got = (Get-Item dist\PyFactor.exe).VersionInfo.ProductVersion
+          if ($got -ne $want) { throw "ProductVersion=$got, ожидалось $want" }
+      - name: Smoke test EXE (из папки с пробелами и кириллицей, 10 с без падения)
+        shell: pwsh
+        run: |
+          $name = -join ([char[]](0x0422, 0x0435, 0x0441, 0x0442))
+          $dir = Join-Path $env:RUNNER_TEMP ($name + " папка with spaces")
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          Copy-Item dist\PyFactor.exe $dir
+          $p = Start-Process -FilePath (Join-Path $dir "PyFactor.exe") -WorkingDirectory $env:RUNNER_TEMP -PassThru
+          Start-Sleep -Seconds 10
+          if ($p.HasExited) { throw "PyFactor.exe завершился сам, код $($p.ExitCode)" }
+          Stop-Process -Id $p.Id -Force
+      - uses: actions/upload-artifact@v4
+        with: { name: PyFactor-windows, path: dist/PyFactor.exe }
+  go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: "1.22" }
+      - run: cd server && gofmt -l . | (! grep .) && go vet ./... && go test -race ./...

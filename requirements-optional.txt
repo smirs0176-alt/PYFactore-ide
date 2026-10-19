@@ -1,0 +1,4 @@
+# Optional runtime enhancements for PyFactor
+# Install with: pip install -r requirements-optional.txt
+keyring>=24.0
+pygments>=2.18.0

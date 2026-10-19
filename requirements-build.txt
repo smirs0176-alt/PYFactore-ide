@@ -1,0 +1,3 @@
+# Сборка PyFactor.exe (Windows):  pip install -r requirements-build.txt && python scripts/build_exe.py
+-r requirements-optional.txt
+pyinstaller>=6.0

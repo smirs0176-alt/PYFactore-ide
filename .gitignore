@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+/build/
+/dist/
+connect.json
+site/data/
+server/state.json
+server/admin_token.txt
+server/dist/admin_token.txt
+.env
+*.db
+/release/

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Login Demo</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        max-width: 560px;
+        width: calc(100% - 32px);
+        padding: 32px;
+      }
+      h1 { margin-top: 0; }
+      a.button {
+        display: inline-block;
+        text-decoration: none;
+        background: #1a73e8;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 10px;
+        margin-top: 18px;
+      }
+      .status {
+        margin-top: 18px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #eef6ff;
+      }
+      .user {
+        margin-top: 18px;
+      }
+      .user img {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        margin-right: 12px;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Google Login</h1>
+      {% if not google_client_id %}
+        <p>Set environment variables before running.</p>
+      {% else %}
+        <a class="button" href="{{ login_url }}">Sign in with Google</a>
+      {% endif %}
+
+      {% if message %}
+        <div class="status">{{ message }}</div>
+      {% endif %}
+
+      {% if user %}
+        <div class="user">
+          {% if user.picture %}
+            <img src="{{ user.picture }}" alt="avatar" />
+          {% endif %}
+          <strong>{{ user.name }}</strong><br />
+          {{ user.email }}
+        </div>
+      {% endif %}
+    </div>
+  </body>
+</html>

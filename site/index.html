@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#050a06">
+<title>PYFACTOR :: терминал</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23050a06'/%3E%3Ctext x='8' y='72' font-size='64' font-family='monospace' fill='%233dff72'%3E%3E_%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#050a06;--fg:#3dff72;--dim:#1fa850;--glow:rgba(61,255,114,.4);--err:#ff5555;color-scheme:dark;
+  --mono:"Cascadia Mono","SF Mono",Consolas,"DejaVu Sans Mono","Liberation Mono","Courier New",monospace}
+:root[data-theme=amber]{--bg:#0b0700;--fg:#ffb000;--dim:#b87800;--glow:rgba(255,176,0,.4);--err:#ff6a4d}
+*{box-sizing:border-box}
+::selection{background:var(--fg);color:var(--bg);text-shadow:none}
+body{margin:0;min-height:100vh;background:var(--bg);background:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--fg) 9%,var(--bg)) 0%,var(--bg) 72%);
+  color:var(--fg);font:16px/1.55 var(--mono);text-shadow:0 0 5px var(--glow);-webkit-font-smoothing:none}
+/* экран ЭЛТ: строки развёртки и затемнение по краям */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,.2) 3px)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:49;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6) 100%)}
+.wrap{max-width:960px;margin:0 auto;padding-left:20px;padding-right:20px}
+.top{border-bottom:3px double var(--dim)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.logo{color:var(--fg);text-decoration:none;font-weight:700;letter-spacing:.06em}
+.logo::after,.cursor{content:"█";animation:blink 1s steps(1) infinite}
+.cursor{display:inline-block}
+@keyframes blink{50%{opacity:0}}
+nav{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--dim)}
+#app{padding-top:30px;padding-bottom:40px;min-height:66vh}
+.grid{display:grid;grid-template-columns:1.1fr 1fr;gap:30px;align-items:start}
+@media (max-width:780px){.grid{grid-template-columns:1fr}}
+h1,h2{margin:0}
+h1{font-size:clamp(22px,4.6vw,36px);line-height:1.2;margin:.3em 0 .6em}
+.hero{text-transform:uppercase;letter-spacing:.03em}
+.dim{color:var(--dim)}.small{font-size:13px}
+.prompt{color:var(--dim)}
+.boot{margin:0;white-space:pre-wrap;color:var(--dim)}
+pre.art{margin:18px 0 0;color:var(--dim);line-height:1.25;overflow-x:auto}
+/* DOS-окна */
+.win{border:3px double var(--fg);margin-bottom:22px;box-shadow:0 0 22px var(--glow),inset 0 0 22px rgba(0,0,0,.4);background:rgba(0,0,0,.35)}
+.win-title{background:var(--fg);color:var(--bg);padding:2px 12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-shadow:none;font-size:14px}
+.win-body{padding:16px 18px 18px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab,.btn{font:inherit;color:var(--fg);background:transparent;border:0;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;text-shadow:inherit;padding:6px 8px}
+.tab::before,.btn::before{content:"[ "}.tab::after,.btn::after{content:" ]"}
+.tab{color:var(--dim)}
+.tab[aria-selected=true]{background:var(--fg);color:var(--bg);text-shadow:none;font-weight:700}
+.btn:hover,.btn:focus-visible,.tab:hover,.tab:focus-visible{background:var(--fg);color:var(--bg);text-shadow:none;outline:none}
+.btn[disabled]{opacity:.5;cursor:wait}
+.btn.block{display:block;width:100%;text-align:center;margin-top:16px;padding:10px 8px;font-weight:700}
+.btn.big{font-size:18px;padding:12px 10px}
+.btn.sm{font-size:13px;padding:3px 4px}
+.link{background:none;border:0;color:var(--fg);font:inherit;cursor:pointer;padding:0;text-decoration:underline;text-shadow:inherit}
+.link:hover,.link:focus-visible{background:var(--fg);color:var(--bg);outline:none;text-shadow:none}
+.field{margin-top:14px}
+label{display:block;font-size:13px;color:var(--dim);text-transform:lowercase}
+.in{display:flex;align-items:center;gap:8px;border-bottom:1px dashed var(--dim);padding:4px 0}
+.in:focus-within{border-bottom-style:solid;border-color:var(--fg);box-shadow:0 6px 10px -8px var(--glow)}
+input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg);font:inherit;caret-color:var(--fg);caret-shape:block;text-shadow:inherit;padding:4px 0}
+input::placeholder{color:var(--dim);opacity:.55}
+input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #000 inset;-webkit-text-fill-color:var(--fg)}
+.msg{min-height:22px;margin-top:14px;font-size:14px}
+.msg:not(:empty)::before{margin-right:6px;font-weight:700}
+.msg.err{color:var(--err);text-shadow:0 0 5px var(--err)}.msg.err:not(:empty)::before{content:"ОШИБКА:"}
+.msg.ok:not(:empty)::before{content:"[OK]"}
+.feat{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:8px}
+.feat li::before{content:"[ OK ] ";color:var(--dim)}
+ol{list-style:none;counter-reset:s;padding:0;margin:16px 0 8px}
+ol li{counter-increment:s;margin:6px 0}ol li::before{content:counter(s) "> ";color:var(--dim)}
+code{border:1px solid var(--dim);padding:0 6px;font-size:.92em}
+.dev{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px dashed var(--dim)}
+.dev:first-child{border-top:0;padding-top:0}
+footer.wrap{padding-top:10px;padding-bottom:26px;color:var(--bg);background:var(--dim);max-width:none;text-shadow:none;font-size:13px}
+@media (max-width:480px){.win-title{font-size:12px;letter-spacing:.02em;padding:2px 8px}.btn.big{font-size:15px;letter-spacing:.02em}.win-body{padding:14px}}
+@media (prefers-reduced-motion:no-preference){#app{animation:flick 6s infinite}@keyframes flick{0%,94%,100%{opacity:1}95%{opacity:.93}97%{opacity:1}98%{opacity:.95}}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap bar"><a class="logo" href="/">C:\PYFACTOR&gt;</a><nav id="nav"></nav></div></header>
+<main class="wrap" id="app" aria-live="polite"><p class="dim">Загрузка…</p></main>
+<footer class="wrap">PYFACTOR TERMINAL v1.0 · (C) 1994 · 640K памяти хватит каждому</footer>
+<noscript><p class="wrap">Для работы сайта нужен JavaScript.</p></noscript>
+<script>
+(() => {
+  'use strict';
+  const app = document.getElementById('app'), nav = document.getElementById('nav'), root = document.documentElement;
+  const state = { user: null, verify: false };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // Всё, что приходит с сервера (имя, email), вставляется только как текст: чужой HTML не выполнится.
+  const h = (tag, attrs = {}, ...kids) => {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'class') e.className = v;
+      else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+      else if (v === true) e.setAttribute(k, '');
+      else if (v !== false && v != null) e.setAttribute(k, v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c));
+    return e;
+  };
+  const mount = (...nodes) => app.replaceChildren(...nodes);
+  const win = (title, ...kids) => h('section', { class: 'win' }, h('div', { class: 'win-title' }, '═╡ ' + title + ' ╞═'), h('div', { class: 'win-body' }, kids));
+  const field = (id, label, input) => h('div', { class: 'field' }, h('label', { for: id }, label),
+    h('div', { class: 'in' }, h('span', { class: 'prompt', 'aria-hidden': 'true' }, '>'), input));
+
+  async function typeInto(el, text, ms = 38) {
+    if (reduce) { el.textContent = text; return; }
+    for (const ch of text) { if (!el.isConnected) return; el.textContent += ch; await sleep(ms); }
+  }
+
+  async function api(path, method = 'GET', body) {
+    const opt = { method, credentials: 'same-origin' };
+    if (method === 'POST') { opt.headers = { 'Content-Type': 'application/json' }; opt.body = JSON.stringify(body || {}); }
+    let r;
+    try { r = await fetch(path, opt); } catch (e) { throw new Error('Нет связи с сервером'); }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'Ошибка ' + r.status);
+    return data;
+  }
+
+  const fmt = ts => new Date(ts * 1000).toLocaleString('ru-RU', { dateStyle: 'medium', timeStyle: 'short' });
+
+  // ---------- цвет экрана: зелёный / янтарный
+  try { if (localStorage.getItem('pf-theme') === 'amber') root.dataset.theme = 'amber'; } catch (e) {}
+  const themeBtn = h('button', { class: 'btn sm', type: 'button', onclick: () => {
+    const amber = root.dataset.theme === 'amber';
+    if (amber) delete root.dataset.theme; else root.dataset.theme = 'amber';
+    try { localStorage.setItem('pf-theme', amber ? 'green' : 'amber'); } catch (e) {}
+    paintTheme();
+  } });
+  const paintTheme = () => { themeBtn.textContent = root.dataset.theme === 'amber' ? 'зелёный' : 'янтарь'; };
+  paintTheme();
+
+  // ---------- загрузка «как в BIOS»
+  async function boot() {
+    const pre = h('pre', { class: 'boot' });
+    mount(pre);
+    for (const line of ['PYFACTOR BIOS v1.0  (C) 1994 PyFactor Systems', 'Проверка памяти ............ 640K OK',
+      'Поиск сервера .............. OK', 'Загрузка ядра PYFACTOR.SYS ... OK', 'Запуск терминала...']) {
+      pre.append(line + '\n'); if (!reduce) await sleep(150);
+    }
+  }
+
+  // ---------- окно входа / регистрации
+  function authCard() {
+    const card = h('div');
+    let mode = 'login', pending = null;
+
+    function draw() {
+      const msg = h('div', { class: 'msg', role: 'alert' });
+      const say = (t, ok) => { msg.textContent = t; msg.className = 'msg ' + (ok ? 'ok' : 'err'); };
+
+      if (mode === 'code') {
+        const code = h('input', { id: 'code', inputmode: 'numeric', autocomplete: 'one-time-code', maxlength: '6', placeholder: '000000', required: true });
+        const btn = h('button', { class: 'btn block', type: 'submit' }, 'Подтвердить и создать аккаунт');
+        const form = h('form', { onsubmit: async ev => {
+          ev.preventDefault(); btn.disabled = true;
+          try { const r = await api('/api/register', 'POST', { ...pending, code: code.value }); state.user = r.user; render(); }
+          catch (e) { say(e.message); btn.disabled = false; }
+        } },
+          h('p', { class: 'dim' }, 'Код отправлен на ' + pending.email + '. Загляни и в «Спам».'),
+          field('code', 'код из письма:', code), btn, msg,
+          h('p', { class: 'small' },
+            h('button', { class: 'link', type: 'button', onclick: async () => {
+              try { await api('/api/register', 'POST', pending); say('Новый код отправлен', true); } catch (e) { say(e.message); }
+            } }, 'отправить ещё раз'), ' · ',
+            h('button', { class: 'link', type: 'button', onclick: () => { mode = 'register'; draw(); } }, 'назад')));
+        card.replaceChildren(win('VERIFY.EXE — код из письма', form)); code.focus(); return;
+      }
+
+      const reg = mode === 'register';
+      const email = h('input', { id: 'email', type: 'email', autocomplete: 'email', required: true, placeholder: 'name@gmail.com' });
+      const pass = h('input', { id: 'pass', type: 'password', required: true, minlength: reg ? '8' : null, autocomplete: reg ? 'new-password' : 'current-password' });
+      const name = h('input', { id: 'name', autocomplete: 'nickname', maxlength: '40', placeholder: 'как к тебе обращаться' });
+      const btn = h('button', { class: 'btn block', type: 'submit' }, reg ? 'Создать аккаунт' : 'Войти');
+      const form = h('form', { onsubmit: async ev => {
+        ev.preventDefault(); btn.disabled = true;
+        try {
+          const body = { email: email.value, password: pass.value };
+          if (reg) body.name = name.value;
+          const r = await api(reg ? '/api/register' : '/api/login', 'POST', body);
+          if (r.need_code) { pending = body; mode = 'code'; draw(); return; }
+          state.user = r.user; render();
+        } catch (e) { say(e.message); btn.disabled = false; }
+      } },
+        field('email', 'email:', email), field('pass', reg ? 'пароль (минимум 8 символов):' : 'пароль:', pass),
+        reg ? field('name', 'имя (необязательно):', name) : null, btn, msg);
+      const tab = (m, t) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(mode === m), onclick: () => { mode = m; draw(); } }, t);
+      const googleBtn = h('a', { class: 'btn block', href: '/auth/google', style: 'display:block;text-decoration:none;text-align:center;margin-bottom:8px;' }, 'Войти через Google');
+      const githubBtn = h('a', { class: 'btn block', href: '/auth/github', style: 'display:block;text-decoration:none;text-align:center;margin-bottom:12px;' }, 'Войти через GitHub');
+      card.replaceChildren(win(reg ? 'REGISTER.EXE — регистрация' : 'LOGIN.EXE — вход',
+        h('div', { class: 'tabs', role: 'tablist' }, tab('login', 'Вход'), tab('register', 'Регистрация')),
+        googleBtn,
+        githubBtn,
+        form));
+      email.focus();
+    }
+    draw();
+    return card;
+  }
+
+  // ---------- главная для гостя
+  function guest() {
+    nav.replaceChildren(themeBtn);
+    const cmd = h('span', {});
+    const art = ['>>> import ai', '>>> ai.help()', '[OK] готово_'].map(l => '│ ' + l.padEnd(18) + ' │');
+    mount(h('div', { class: 'grid' },
+      h('section', {},
+        h('div', { class: 'prompt' }, 'C:\\> ', cmd, h('span', { class: 'cursor' })),
+        h('h1', { class: 'hero' }, 'Пиши код. ИИ поможет.'),
+        h('p', {}, 'PyFactor — лёгкая IDE на Python: редактор, запуск, проверка кода и помощник на Gemini. Создай аккаунт на сайте и скачай приложение — оно подключится к аккаунту само.'),
+        h('ul', { class: 'feat' },
+          h('li', {}, 'Один аккаунт: регистрация на сайте, вход в приложении не нужен'),
+          h('li', {}, 'Ничего не надо настраивать: скачал, запустил, работает'),
+          h('li', {}, 'Устройства видно на сайте, любое можно отключить')),
+        h('pre', { class: 'art', 'aria-hidden': 'true' }, '┌' + '─'.repeat(20) + '┐\n' + art.join('\n') + '\n└' + '─'.repeat(20) + '┘')),
+      authCard()));
+    typeInto(cmd, 'pyfactor.exe /start');
+  }
+
+  // ---------- кабинет после входа
+  async function dashboard() {
+    nav.replaceChildren(themeBtn, h('span', {}, state.user.email),
+      h('button', { class: 'btn sm', onclick: async () => { try { await api('/api/logout', 'POST'); } catch (e) {} state.user = null; render(); } }, 'Выйти'));
+    const dlMsg = h('div', { class: 'msg', role: 'alert' });
+    const dl = h('button', { class: 'btn big block', onclick: async () => {
+      dl.disabled = true; dlMsg.textContent = ''; dlMsg.className = 'msg';
+      try {
+        const r = await fetch('/api/download', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Ошибка ' + r.status);
+        const url = URL.createObjectURL(await r.blob());
+        const a = h('a', { href: url, download: 'PyFactor.exe' }); document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        dlMsg.textContent = 'Exe-бандл скачан. Дальше по шагам ниже.'; dlMsg.className = 'msg ok';
+        loadDevices();
+      } catch (e) { dlMsg.textContent = e.message; dlMsg.className = 'msg err'; }
+      dl.disabled = false;
+    } }, '⬇ Скачать PyFactor.exe');
+    const list = h('div', {}, h('p', { class: 'dim' }, 'Чтение диска…'));
+
+    async function loadDevices(data) {
+      try {
+        const d = data || await api('/api/devices');
+        list.replaceChildren(...(d.devices.length ? d.devices.map(x => h('div', { class: 'dev' },
+          h('div', {}, h('strong', {}, x.label), h('div', { class: 'dim small' }, 'подключено ' + fmt(x.created) + ' · активно ' + fmt(x.last_seen))),
+          h('button', { class: 'btn sm', onclick: async () => { try { loadDevices(await api('/api/devices/revoke', 'POST', { id: x.id })); } catch (e) {} } }, 'Отключить')))
+          : [h('p', { class: 'dim' }, 'Пока ни одного устройства. Скачай приложение и запусти его.')]));
+      } catch (e) { list.replaceChildren(h('p', { class: 'msg err' }, e.message)); }
+    }
+    mount(
+      h('div', { class: 'prompt' }, 'C:\\PYFACTOR> whoami'),
+      h('h1', {}, 'Привет, ', state.user.name, h('span', { class: 'cursor' })),
+      win('DOWNLOAD.EXE — скачать приложение',
+        h('p', {}, 'Exe-бандл уже содержит твой одноразовый код подключения: после первого запуска приложение само войдёт в этот аккаунт.'),
+        dl, dlMsg,
+        h('ol', {},
+          h('li', {}, 'Скачай ', h('code', {}, 'PyFactor.exe'), ' и запусти его.'),
+          h('li', {}, 'Если нужен исходный проект, открой папку с приложением и запусти ', h('code', {}, 'scripts/run.bat'), ' (Windows) или ', h('code', {}, 'scripts/run.sh'), ' (macOS / Linux).'),
+          h('li', {}, 'Готово: приложение откроется уже с твоим аккаунтом.')),
+        h('p', { class: 'dim small' }, 'Нужен Python 3.9+ с tkinter. На Windows он входит в установщик python.org, на Linux: ', h('code', {}, 'sudo apt install python3-tk'), '. Код подключения действует 7 дней и срабатывает один раз — не отправляй архив другим.')),
+      win('DEVICES.DAT — мои устройства', list));
+    loadDevices();
+  }
+
+  function render() { state.user ? dashboard() : guest(); }
+
+  Promise.all([boot(), api('/api/session')])
+    .then(([, s]) => { state.user = s.user; state.verify = s.verify_email; render(); })
+    .catch(e => mount(h('p', { class: 'msg err' }, e.message)));
+})();
+</script>
+</body>
+</html>

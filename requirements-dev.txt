@@ -1,0 +1,6 @@
+# Всё для запуска тестов и проверок:  pip install -r requirements-dev.txt
+# Нижние границы выбраны по возможностям, которые использует код; точные версии зафиксирует ваш первый зелёный прогон CI.
+-r requirements-optional.txt
+pytest>=8.0
+ruff>=0.6
+flask>=3.0        # tests/test_pairing.py и pyfactor/pairing.py
